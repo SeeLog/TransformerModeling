@@ -68,7 +68,7 @@ class SimpleTransformerTrainer(Trainer):
                 tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
                 tgt_y = tgt[:, 1:]
                 # 0 == padding_idx
-                ntokens = (self.tgt_y != 0).data.sum()
+                ntokens = (tgt_y != 0).data.sum()
 
                 out = self.model(src, tgt, src_mask, trg_mask)
                 loss = self.loss_compute(out, tgt_y, ntokens)
@@ -101,7 +101,7 @@ class SimpleTransformerTrainer(Trainer):
                     tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
                     tgt_y = tgt[:, 1:]
                     # 0 == padding_idx
-                    ntokens = (self.tgt_y != 0).data.sum()
+                    ntokens = (tgt_y != 0).data.sum()
 
                     out = self.model(src, tgt, src_mask, tgt_mask)
                     loss = self.valid_loss_compute(out, tgt_y, ntokens)
