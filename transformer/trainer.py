@@ -69,9 +69,9 @@ class SimpleTransformerTrainer(Trainer):
                 src, tgt = batch
                 src = src.to(self.device)
                 tgt = tgt.to(self.device)
-                
-                src_mask = get_src_mask(src=src, padding_idx=0)
-                tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
+
+                src_mask = get_src_mask(src=src, padding_idx=0).to(self.device)
+                tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0).to(self.device)
                 tgt_y = tgt[:, 1:]
                 # 0 == padding_idx
                 ntokens = (tgt_y != 0).data.sum()
@@ -106,8 +106,8 @@ class SimpleTransformerTrainer(Trainer):
                     src.to(self.device)
                     tgt.to(self.device)
 
-                    src_mask = get_src_mask(src=src, padding_idx=0)
-                    tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
+                    src_mask = get_src_mask(src=src, padding_idx=0).to(self.device)
+                    tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0).to(self.device)
                     tgt_y = tgt[:, 1:]
                     # 0 == padding_idx
                     ntokens = (tgt_y != 0).data.sum()
