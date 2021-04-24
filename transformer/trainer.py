@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 from .models import EncoderDecoder
 from .optimizer import NoamOpt
 from .utils import SimpleLossCompute, LabelSmoothing
-from .options import Option
 
 from torch.utils.tensorboard import SummaryWriter
 from typing import Optional, Dict
@@ -12,7 +11,7 @@ from tqdm import tqdm as tqdm_orig
 
 
 class Trainer():
-    def __init__(self, model, dataloader, options, writer):
+    def __init__(self, model, dataloader, writer):
         pass
 
 
@@ -21,7 +20,6 @@ class SimpleTransformerTrainer(Trainer):
         self,
         model: EncoderDecoder,
         dataloader: DataLoader,
-        options: Option,
         writer: Optional[SummaryWriter] = None,
         labelsmooth: Optional[LabelSmoothing] = None,
         tqdm=tqdm_orig,
@@ -29,7 +27,6 @@ class SimpleTransformerTrainer(Trainer):
         self.model = model
 
         self.dataloader = dataloader
-        self.options = options
         self.writer = writer
 
         self.tqdm = tqdm
