@@ -6,7 +6,6 @@ import copy
 
 from .layers import Encoder, Decoder, EncoderLayer, DecoderLayer
 from .sublayers import Embeddings, MultiHeadAttention, PositionalEncoding, PositionwiseFeedForward
-from .auto_encoder import AutoEncoder
 
 
 def make_model(src_vocab: int, tgt_vocab: int, num_layers: int = 6, d_model: int = 512, d_ff: int = 2048, head_num: int = 8, dropout: float = 0.1):
@@ -48,7 +47,7 @@ def make_model(src_vocab: int, tgt_vocab: int, num_layers: int = 6, d_model: int
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)
     return model
-    
+
 
 class Generator(nn.Module):
     "Define standard linear + softmax generation step."
