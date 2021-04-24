@@ -81,7 +81,7 @@ class SimpleTransformerTrainer(Trainer):
                     pber.set_postfix(ordered_dict={"loss": (float(total_loss) / float(total_tokens))})
                     if self.writer is not None:
                         self.writer.add_scalar('optimizer/learning_rate', self.model_opt._rate, self.train_global_step)
-                        self.writer.add_scalar('loss/train_step_loss', float(loss) / float(batch.ntokens), self.train_global_step)
+                        self.writer.add_scalar('loss/train_step_loss', float(loss) / float(ntokens), self.train_global_step)
 
         return total_loss / total_tokens
 
