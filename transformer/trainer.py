@@ -1,0 +1,105 @@
+import torch
+from torch.util.data import DataLoader
+
+from .models import EncoderDecoder
+from .optimizer import NoamOpt
+from .utils import SimpleLossCompute, LabelSmoothing
+from .options import Option
+
+from torch.utils.tensorboard import SummaryWriter
+from typing import Optional, Dict
+from tqdm import tqdm as tqdm_orig
+
+
+class Trainer():
+    def __init__(self, model, dataloader, options, writer):
+        pass
+
+
+class SimpleTransformerTrainer(Trainer):
+    def __init__(
+        self,
+        model: EncoderDecoder,
+        dataloader: DataLoader,
+        options: Option,
+        writer: Optional[SummaryWriter] = None,
+        labelsmooth: Optional[LabelSmoothing] = None,
+        tqdm=tqdm_orig,
+    ):
+        self.model = model
+
+        self.dataloader = dataloader
+        self.options = options
+        self.writer = writer
+
+        self.tqdm = tqdm
+        self.train_global_step = 0
+
+        self.model_opt = NoamOpt(model.src_embed[0].d_model, 1, 16000, torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
+
+        if labelsmooth is None:
+            self.labelsmooth = LabelSmoothing(size=model.tgt_embed[0].d_model, padding_idx=0, smoothing=0.1)
+
+    def loss_compute(self, x: torch.tensor, y: torch.tensor, norm: int):
+        x = self.model.generator(x)
+        loss = self.labelsmooth(x.contiguous().view(-1, x.size(-1)), y.contiguous().view(-1)) / norm
+        loss.backward()
+        if self.model_opt is not None:
+            self.model_opt.step()
+            self.model_opt.optimizer.zero_grad()
+        return loss.item() * norm
+
+    def valid_loss_compute(self, x: torch.tensor, y: torch.tensor, norm: int):
+        x = self.model.generator(x)
+        loss = self.labelsmooth(x.contiguous().view(-1, x.size(-1)), y.contiguous().view(-1)) / norm
+        return loss.item() * norm
+
+    def run_train_epoch(self, epoch_i: int, refresh: int = 100):
+        "Standard Training and Logging Method"
+        self.model.train()
+        total_tokens = 0
+        total_loss = 0
+        tokens = 0
+
+        data_iter = self.dataloader.get_train_batch()
+
+        with self.tqdm(data_iter, leave=False, desc="[Train] Epoch: {}".format(epoch_i)) as pber:
+            for i, batch in enumerate(pber):
+                batch = MiniBatch(batch.src, batch.tgt, 1)
+                out = self.model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
+                loss = self.loss_compute(out, batch.trg_y, batch.ntokens)
+                total_loss += loss
+                total_tokens += batch.ntokens
+                tokens += batch.ntokens
+                self.train_global_step += 1
+
+                if i % refresh == 0:
+                    pber.set_postfix(ordered_dict={"loss": (float(total_loss) / float(total_tokens))})
+                    if self.writer is not None:
+                        self.writer.add_scalar('optimizer/learning_rate', self.model_opt._rate, self.train_global_step)
+                        self.writer.add_scalar('loss/train_step_loss', float(loss) / float(batch.ntokens), self.train_global_step)
+
+        return total_loss / total_tokens
+
+    def run_valid_epoch(self, epoch_i: int, refresh: int = 10):
+        self.model.eval()
+
+        total_tokens = 0
+        total_loss = 0
+        tokens = 0
+
+        with torch.no_grad():
+            data_iter = self.dataloader.get_valid_batch()
+            with self.tqdm(data_iter, leave=False, desc="[Valid] Epoch: {}".format(epoch_i)) as pber:
+                for i, batch in enumerate(pber):
+                    batch = MiniBatch(batch.src, batch.tgt, 1)
+                    out = self.model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
+                    loss = self.valid_loss_compute(out, batch.trg_y, batch.ntokens)
+                    total_loss += loss
+                    total_tokens += batch.ntokens
+                    tokens += batch.ntokens
+
+                    if i % refresh == 0:
+                        pber.set_postfix(ordered_dict={"loss": (float(total_loss) / float(total_tokens))})
+
+        return total_loss / total_tokens
