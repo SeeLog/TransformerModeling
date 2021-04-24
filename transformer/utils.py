@@ -110,11 +110,12 @@ class SimpleLossCompute:
 
 def save_checkpoint(model: nn.Module, filepath: str, is_best: bool, epoch_i: int):
     os.makedirs(filepath, exist_ok=True)
-    model_save_path = os.path.join(filepath, 'model_epoch_{}.pt'.format(epoch_i))
+    # model_save_path = os.path.join(filepath, 'model_epoch_{}.pt'.format(epoch_i))
     torch.save(model.state_dict(), model_save_path)
     if is_best:
         best_save_path = os.path.join(filepath, 'best_model.pt')
-        shutil.copyfile(model_save_path, best_save_path)
+        torch.save(model.state_dict(), best_save_path)
+        # shutil.copyfile(model_save_path, best_save_path)
 
 
 def load_checkpoint(model, model_path, device, is_eval=True, is_file=False):
