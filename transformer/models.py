@@ -32,7 +32,7 @@ def make_model(src_vocab: int, tgt_vocab: int, num_layers: int = 6, d_model: int
         tgt_emb = src_emb
         tgt_vocab = src_vocab
     else:
-        tgt_emb = Embeddings(d_model, tgt_emb)
+        tgt_emb = Embeddings(d_model, tgt_vocab)
 
     model = EncoderDecoder(
         Encoder(EncoderLayer(d_model, c(attn), c(ff), dropout), num_layers),
