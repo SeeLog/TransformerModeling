@@ -24,6 +24,7 @@ class SimpleTransformerTrainer(Trainer):
         writer: Optional[SummaryWriter] = None,
         labelsmooth: Optional[LabelSmoothing] = None,
         tqdm=tqdm_orig,
+        device: str="cpu"
     ):
         self.model = model
 
@@ -33,6 +34,8 @@ class SimpleTransformerTrainer(Trainer):
 
         self.tqdm = tqdm
         self.train_global_step = 0
+
+        self.device = device
 
         self.model_opt = NoamOpt(model.src_embed[0].d_model, 1, 16000, torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
 
@@ -63,7 +66,7 @@ class SimpleTransformerTrainer(Trainer):
         with self.tqdm(self.train_dataloader, leave=False, desc="[Train] Epoch: {}".format(epoch_i)) as pber:
             for i, batch in enumerate(pber):
                 # batch = MiniBatch(batch.src, batch.tgt, 1)
-                src, tgt = batch
+                src, tgt = batch.to(self.device)
                 src_mask = get_src_mask(src=src, padding_idx=0)
                 tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
                 tgt_y = tgt[:, 1:]
@@ -96,7 +99,7 @@ class SimpleTransformerTrainer(Trainer):
             with self.tqdm(self.valid_dataloader, leave=False, desc="[Valid] Epoch: {}".format(epoch_i)) as pber:
                 for i, batch in enumerate(pber):
                     # batch = MiniBatch(batch.src, batch.tgt, 1)
-                    src, tgt = batch
+                    src, tgt = batch.to(self.device)
                     src_mask = get_src_mask(src=src, padding_idx=0)
                     tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
                     tgt_y = tgt[:, 1:]
