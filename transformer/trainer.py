@@ -66,7 +66,10 @@ class SimpleTransformerTrainer(Trainer):
         with self.tqdm(self.train_dataloader, leave=False, desc="[Train] Epoch: {}".format(epoch_i)) as pber:
             for i, batch in enumerate(pber):
                 # batch = MiniBatch(batch.src, batch.tgt, 1)
-                src, tgt = batch.to(self.device)
+                src, tgt = batch
+                src = src.to(self.device)
+                tgt = tgt.to(self.device)
+                
                 src_mask = get_src_mask(src=src, padding_idx=0)
                 tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
                 tgt_y = tgt[:, 1:]
@@ -99,7 +102,10 @@ class SimpleTransformerTrainer(Trainer):
             with self.tqdm(self.valid_dataloader, leave=False, desc="[Valid] Epoch: {}".format(epoch_i)) as pber:
                 for i, batch in enumerate(pber):
                     # batch = MiniBatch(batch.src, batch.tgt, 1)
-                    src, tgt = batch.to(self.device)
+                    src, tgt = batch
+                    src.to(self.device)
+                    tgt.to(self.device)
+
                     src_mask = get_src_mask(src=src, padding_idx=0)
                     tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
                     tgt_y = tgt[:, 1:]
