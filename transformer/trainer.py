@@ -1,5 +1,5 @@
 import torch
-from torch.util.data import DataLoader
+from torch.utils.data import DataLoader
 
 from .models import EncoderDecoder
 from .optimizer import NoamOpt
