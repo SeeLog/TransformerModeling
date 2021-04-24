@@ -92,9 +92,9 @@ class Embeddings(nn.Module):
     """
     Fixed Embedding Module
     """
-    def __init__(self, d_model, vocab, padding_idx=1):
+    def __init__(self, d_model, vocab, padding_idx=0):
         super(Embeddings, self).__init__()
-        self.lut = nn.Embedding(vocab, d_model, padding_idx=1)
+        self.lut = nn.Embedding(vocab, d_model, padding_idx=padding_idx)
         self.d_model = d_model
 
     def forward(self, x):
