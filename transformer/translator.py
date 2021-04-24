@@ -4,8 +4,6 @@ from typing import List
 
 class SimpleTransformerTranslator():
     def __init__(self, model, src_tokenizer, tgt_tokenizer, device: torch.device, pad_idx=0, sos_idx=2, eos_idx=3, unk_idx=1, max_len=64) -> None:
-        super().__init__(model)
-
         self.model = model
         self.src_tokenizer = src_tokenizer
         self.tgt_tokenizer = tgt_tokenizer
