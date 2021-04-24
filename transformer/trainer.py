@@ -103,8 +103,8 @@ class SimpleTransformerTrainer(Trainer):
                 for i, batch in enumerate(pber):
                     # batch = MiniBatch(batch.src, batch.tgt, 1)
                     src, tgt = batch
-                    src.to(self.device)
-                    tgt.to(self.device)
+                    src = src.to(self.device)
+                    tgt = tgt.to(self.device)
 
                     src_mask = get_src_mask(src=src, padding_idx=0).to(self.device)
                     tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0).to(self.device)
