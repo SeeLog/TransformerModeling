@@ -1,5 +1,6 @@
 import torch
 
+from typing import List
 
 class SimpleTransformerTranslator():
     def __init__(self, model, src_tokenizer, tgt_tokenizer, device: torch.device, pad_idx=0, sos_idx=2, eos_idx=3, unk_idx=1, max_len=64) -> None:
@@ -44,7 +45,7 @@ class SimpleTransformerTranslator():
             pad_idx=self.pad_idx,
         )
 
-    def padding(self, lst: List[int], max_length: int, pad_idx: int = DEFAULT_PAD_IDX) -> List[int]:
+    def padding(self, lst: List[int], max_length: int, pad_idx: int) -> List[int]:
         if len(lst) < max_length:
             return lst + [pad_idx] * (max_length - len(lst))
         else:
