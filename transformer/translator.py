@@ -2,11 +2,12 @@
 
 
 class SimpleTransformerTranslator():
-    def __init__(self, model, tokenizer, device: torch.device, pad_idx=0, sos_idx=2, eos_idx=3, unk_idx=1, max_len=64) -> None:
+    def __init__(self, model, src_tokenizer, tgt_tokenizer, device: torch.device, pad_idx=0, sos_idx=2, eos_idx=3, unk_idx=1, max_len=64) -> None:
         super().__init__(model)
 
         self.model = model
-        self.tokenizer = tokenizer
+        self.src_tokenizer = src_tokenizer
+        self.tgt_tokenizer = tgt_tokenizer
         self.device = device
         self.pad_idx = pad_idx
         self.sos_idx = sos_idx
@@ -18,7 +19,7 @@ class SimpleTransformerTranslator():
         self.model.eval()
 
         with torch.no_grad():
-            src = self.fields.src.process([self.tokenizer.tokenize(text)]).to(self.device)
+            src = torch.tensor(self._to_idx_list([self.src_tokenizer.tokenize(text)], self.src_tokenizer)).to(self.device)
             src_mask = (src != self.pad_idx).unsqueeze(-2)
             if decode_method.lower() == "top":
                 out = self.top_k_top_p_decoding(src, top_k, top_p)
@@ -28,8 +29,8 @@ class SimpleTransformerTranslator():
             ret = []
 
             for i in range(1, out.size(1)):
-                sym = self.fields.tgt.vocab.itos[out[0, i]]
-                if sym == self.fields.tgt.vocab.itos[self.eos_idx]:
+                sym = self.tgt_tokenizer.get_vocab().itos(out[0, i])
+                if sym == self.tgt_tokenizer.get_vocab().itos(self.eos_idx):
                     break
                 ret.append(sym)
 
@@ -61,8 +62,8 @@ class SimpleTransformerTranslator():
             for batch_i in range(out.size(0)):
                 tgt_list = []
                 for i in range(1, out.size(1)):
-                    sym = self.fields.tgt.vocab.itos[out[batch_i, i]]
-                    if sym == self.fields.tgt.vocab.itos[self.eos_idx]:
+                    sym = self.tgt_tokenizer.get_vocab().itos(out[batch_i, i])
+                    if sym == self.tgt_tokenizer.get_vocab().itos(self.eos_idx):
                         break
                     tgt_list.append(sym)
                 ret.append(" ".join(tgt_list))
