@@ -37,7 +37,7 @@ class SimpleTransformerTrainer(Trainer):
         self.model_opt = NoamOpt(model.src_embed[0].d_model, 1, 16000, torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
 
         if labelsmooth is None:
-            self.labelsmooth = LabelSmoothing(size=model.tgt_embed[0].d_model, padding_idx=0, smoothing=0.1)
+            self.labelsmooth = LabelSmoothing(size=model.tgt_embed[0].vocab, padding_idx=0, smoothing=0.1)
 
     def loss_compute(self, x: torch.tensor, y: torch.tensor, norm: int):
         x = self.model.generator(x)
