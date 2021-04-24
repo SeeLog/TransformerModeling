@@ -70,7 +70,7 @@ class SimpleTransformerTrainer(Trainer):
                 # 0 == padding_idx
                 ntokens = (tgt_y != 0).data.sum()
 
-                out = self.model(src, tgt, src_mask, trg_mask)
+                out = self.model(src, tgt, src_mask, tgt_mask)
                 loss = self.loss_compute(out, tgt_y, ntokens)
                 total_loss += loss
                 total_tokens += ntokens
