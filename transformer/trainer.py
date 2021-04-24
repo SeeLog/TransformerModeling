@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 
 from .models import EncoderDecoder
 from .optimizer import NoamOpt
-from .utils import SimpleLossCompute, LabelSmoothing
+from .utils import SimpleLossCompute, LabelSmoothing, get_src_mask, get_tgt_mask
 
 from torch.utils.tensorboard import SummaryWriter
 from typing import Optional, Dict
@@ -62,12 +62,19 @@ class SimpleTransformerTrainer(Trainer):
 
         with self.tqdm(self.train_dataloader, leave=False, desc="[Train] Epoch: {}".format(epoch_i)) as pber:
             for i, batch in enumerate(pber):
-                batch = MiniBatch(batch.src, batch.tgt, 1)
-                out = self.model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
-                loss = self.loss_compute(out, batch.trg_y, batch.ntokens)
+                # batch = MiniBatch(batch.src, batch.tgt, 1)
+                src, tgt = batch
+                src_mask = get_src_mask(src=src, padding_idx=0)
+                tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
+                tgt_y = tgt[:, 1:]
+                # 0 == padding_idx
+                ntokens = (self.tgt_y != 0).data.sum()
+
+                out = self.model(src, tgt, src_mask, trg_mask)
+                loss = self.loss_compute(out, tgt_y, ntokens)
                 total_loss += loss
-                total_tokens += batch.ntokens
-                tokens += batch.ntokens
+                total_tokens += ntokens
+                tokens += ntokens
                 self.train_global_step += 1
 
                 if i % refresh == 0:
@@ -88,12 +95,19 @@ class SimpleTransformerTrainer(Trainer):
         with torch.no_grad():
             with self.tqdm(self.valid_dataloader, leave=False, desc="[Valid] Epoch: {}".format(epoch_i)) as pber:
                 for i, batch in enumerate(pber):
-                    batch = MiniBatch(batch.src, batch.tgt, 1)
-                    out = self.model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
-                    loss = self.valid_loss_compute(out, batch.trg_y, batch.ntokens)
+                    # batch = MiniBatch(batch.src, batch.tgt, 1)
+                    src, tgt = batch
+                    src_mask = get_src_mask(src=src, padding_idx=0)
+                    tgt_mask = get_tgt_mask(tgt=tgt, padding_idx=0)
+                    tgt_y = tgt[:, 1:]
+                    # 0 == padding_idx
+                    ntokens = (self.tgt_y != 0).data.sum()
+
+                    out = self.model(src, tgt, src_mask, tgt_mask)
+                    loss = self.valid_loss_compute(out, tgt_y, ntokens)
                     total_loss += loss
-                    total_tokens += batch.ntokens
-                    tokens += batch.ntokens
+                    total_tokens += ntokens
+                    tokens += ntokens
 
                     if i % refresh == 0:
                         pber.set_postfix(ordered_dict={"loss": (float(total_loss) / float(total_tokens))})
