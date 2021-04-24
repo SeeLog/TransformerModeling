@@ -96,6 +96,7 @@ class Embeddings(nn.Module):
         super(Embeddings, self).__init__()
         self.lut = nn.Embedding(vocab, d_model, padding_idx=padding_idx)
         self.d_model = d_model
+        self.vocab_size = vocab
 
     def forward(self, x):
         return self.lut(x) * math.sqrt(self.d_model)
