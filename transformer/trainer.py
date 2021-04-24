@@ -19,14 +19,16 @@ class SimpleTransformerTrainer(Trainer):
     def __init__(
         self,
         model: EncoderDecoder,
-        dataloader: DataLoader,
+        train_dataloader: DataLoader,
+        valid_dataloader: DataLoader,
         writer: Optional[SummaryWriter] = None,
         labelsmooth: Optional[LabelSmoothing] = None,
         tqdm=tqdm_orig,
     ):
         self.model = model
 
-        self.dataloader = dataloader
+        self.train_dataloader = train_dataloader
+        self.valid_dataloader = valid_dataloader
         self.writer = writer
 
         self.tqdm = tqdm
@@ -58,9 +60,7 @@ class SimpleTransformerTrainer(Trainer):
         total_loss = 0
         tokens = 0
 
-        data_iter = self.dataloader.get_train_batch()
-
-        with self.tqdm(data_iter, leave=False, desc="[Train] Epoch: {}".format(epoch_i)) as pber:
+        with self.tqdm(self.train_dataloader, leave=False, desc="[Train] Epoch: {}".format(epoch_i)) as pber:
             for i, batch in enumerate(pber):
                 batch = MiniBatch(batch.src, batch.tgt, 1)
                 out = self.model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)
@@ -86,8 +86,7 @@ class SimpleTransformerTrainer(Trainer):
         tokens = 0
 
         with torch.no_grad():
-            data_iter = self.dataloader.get_valid_batch()
-            with self.tqdm(data_iter, leave=False, desc="[Valid] Epoch: {}".format(epoch_i)) as pber:
+            with self.tqdm(self.valid_dataloader, leave=False, desc="[Valid] Epoch: {}".format(epoch_i)) as pber:
                 for i, batch in enumerate(pber):
                     batch = MiniBatch(batch.src, batch.tgt, 1)
                     out = self.model(batch.src, batch.trg, batch.src_mask, batch.trg_mask)

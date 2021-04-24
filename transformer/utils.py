@@ -56,6 +56,18 @@ def subsequent_mask(size):
     return torch.from_numpy(subsequent_mask) == 0
 
 
+def src_mask(src: torch.tensor, padding_idx=0):
+    src_mask = (src != padding_idx).unsqueeze(-2)
+    return src_mask
+
+
+def tgt_mask(tgt: torch.tensor, padding_idx=0):
+    "Create a mask to hide padding and future words."
+    tgt_mask = (tgt != padding_idx).unsqueeze(-2)
+    tgt_mask = tgt_mask & subsequent_mask(tgt.size(-1)).type_as(tgt_mask.data)
+    return tgt_mask
+
+
 def greedy_decode(model, src: torch.tensor, src_mask: torch.tensor, max_len: torch.tensor, start_symbol: int):
     """
     Greedy Decoding
